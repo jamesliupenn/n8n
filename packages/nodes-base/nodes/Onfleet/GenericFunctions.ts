@@ -13,10 +13,6 @@ import {
 	IDataObject, NodeApiError
 } from 'n8n-workflow';
 
-import {
-	snakeCase,
-} from 'change-case';
-
 export async function onfleetApiRequest(this: IWebhookFunctions | IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions, method: string, apikey: string, resource: string, body: any = {}, qs: IDataObject = {}, uri?: string, headers: IDataObject = {}, option: IDataObject = {}): Promise<any> { // tslint:disable-line:no-any
 	const options: OptionsWithUri = {
 		headers: {
@@ -30,50 +26,9 @@ export async function onfleetApiRequest(this: IWebhookFunctions | IHookFunctions
 		json: true,
 	};
 	try {
-		// options = Object.assign({}, options, option);
-		// if (Object.keys(headers).length !== 0) {
-		// 	options.headers = Object.assign({}, options.headers, headers);
-		// }
-		// if (Object.keys(body).length === 0) {
-		// 	delete options.body;
-		// }
 		//@ts-ignore
 		return await this.helpers.request(options);
 	} catch (error) {
 		throw new NodeApiError(this.getNode(), error);
 	}
 }
-
-// export async function keapApiRequestAllItems(this: IHookFunctions | IExecuteFunctions | ILoadOptionsFunctions, propertyName: string, method: string, endpoint: string, body: any = {}, query: IDataObject = {}): Promise<any> { // tslint:disable-line:no-any
-
-// 	const returnData: IDataObject[] = [];
-
-// 	let responseData;
-// 	let uri: string | undefined;
-// 	query.limit = 50;
-
-// 	do {
-// 		responseData = await keapApiRequest.call(this, method, endpoint, body, query, uri);
-// 		uri = responseData.next;
-// 		returnData.push.apply(returnData, responseData[propertyName]);
-// 	} while (
-// 		returnData.length < responseData.count
-// 	);
-
-// 	return returnData;
-// }
-
-// export function keysToSnakeCase(elements: IDataObject[] | IDataObject): IDataObject[] {
-// 	if (!Array.isArray(elements)) {
-// 		elements = [elements];
-// 	}
-// 	for (const element of elements) {
-// 		for (const key of Object.keys(element)) {
-// 			if (key !== snakeCase(key)) {
-// 				element[snakeCase(key)] = element[key];
-// 				delete element[key];
-// 			}
-// 		}
-// 	}
-// 	return elements;
-// }

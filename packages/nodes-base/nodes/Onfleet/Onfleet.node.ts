@@ -22,7 +22,7 @@ export class Onfleet implements INodeType {
 			displayName: 'Onfleet',
 			name: 'onfleet',
 			icon: 'file:onfleet.png',
-			group: ['transform'],
+			group: ['input'],
 			version: 1,
 			description: 'Onfleet API',
 			defaults: {
