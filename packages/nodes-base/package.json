@@ -450,6 +450,7 @@
       "dist/nodes/NextCloud/NextCloud.node.js",
       "dist/nodes/NoOp.node.js",
       "dist/nodes/Onfleet/Onfleet.node.js",
+      "dist/nodes/Onfleet/OnfleetTrigger.node.js",
       "dist/nodes/OpenThesaurus/OpenThesaurus.node.js",
       "dist/nodes/OpenWeatherMap.node.js",
       "dist/nodes/Orbit/Orbit.node.js",

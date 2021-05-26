@@ -17,6 +17,8 @@ import {
 	onfleetApiRequest,
 } from './GenericFunctions';
 
+// tslint:disable:indent
+
 export class Onfleet implements INodeType {
 	description: INodeTypeDescription = {
 			displayName: 'Onfleet',
@@ -167,6 +169,11 @@ export class Onfleet implements INodeType {
 							name: 'Delete',
 							value: 'delete',
 							description: 'Delete an Onfleet task',
+						},
+						{
+							name: 'List',
+							value: 'list',
+							description: 'List Onfleet tasks',
 						},
 						{
 							name: 'Lookup',
@@ -528,6 +535,79 @@ export class Onfleet implements INodeType {
 						},
 					],
 				},
+				// Task List Fields
+				{
+					displayName: 'From',
+					name: 'from',
+					type: 'dateTime',
+					displayOptions: {
+						show: {
+							resource: [
+								'tasks',
+							],
+							operation: [
+								'list',
+							],
+						},
+					},
+					description: 'The starting time of the range. Tasks created or completed at or after this time will be included.',
+					required: true,
+					default: '',
+				},
+				{
+					displayName: 'To',
+					name: 'to',
+					type: 'dateTime',
+					displayOptions: {
+						show: {
+							resource: [
+								'tasks',
+							],
+							operation: [
+								'list',
+							],
+						},
+					},
+					description: 'The ending time of the range. Defaults to current time if not specified.',
+					required: false,
+					default: null,
+				},
+				{
+					displayName: 'State',
+					name: 'state',
+					type: 'string',
+					displayOptions: {
+						show: {
+							resource: [
+								'tasks',
+							],
+							operation: [
+								'list',
+							],
+						},
+					},
+					description: 'The state of the tasks.',
+					required: false,
+					default: null,
+				},
+        {
+					displayName: 'LastId',
+					name: 'lastId',
+					type: 'string',
+					displayOptions: {
+						show: {
+							resource: [
+								'tasks',
+							],
+							operation: [
+								'list',
+							],
+						},
+					},
+					description: 'The last Id to walk the paginated response.',
+					required: false,
+					default: null,
+				},
 			],
 	};
 
@@ -541,8 +621,11 @@ export class Onfleet implements INodeType {
 
 		// CRUD - Create entity
 		if (operation === 'create') {
-			// TODO: pull in options
-			const body = {};
+			const body = {
+				pickupTask: this.getNodeParameter('pickupTask', 0) as boolean,
+				quantity  : this.getNodeParameter('quantity', 0) as number,
+				
+			};
 			responseData = await onfleetApiRequest.call(this, 'PUT', encodedApiKey, resource, body);
 		}
 		else if (operation === 'clone') {
@@ -553,7 +636,24 @@ export class Onfleet implements INodeType {
 		}
 		// CRUD - List all entities
 		else if (operation === 'list') {
-			responseData = await onfleetApiRequest.call(this, 'GET', encodedApiKey, resource);
+			if (resource === 'tasks') {
+        let queryParams;
+        // Getting the required field
+				const fromInUnix = new Date(this.getNodeParameter('from', 0) as Date).getTime();
+        queryParams = `?from=${fromInUnix}`;
+        // Check for optional fields
+        const state = this.getNodeParameter('state', 0) as number;
+        if (state) queryParams += `&state=${state}`;
+        const toInUnix = new Date(this.getNodeParameter('to', 0) as Date).getTime();
+        if (toInUnix) queryParams += `&to=${toInUnix}`;
+
+        const path = `${resource}/all${queryParams}`;
+        console.log(path);
+
+        responseData = await onfleetApiRequest.call(this, 'GET', encodedApiKey, path);
+			} else {
+        responseData = await onfleetApiRequest.call(this, 'GET', encodedApiKey, resource);
+      }
 		}
 		// CRUD - Get entity by ID
 		else if (operation === 'lookup') {
