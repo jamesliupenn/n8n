@@ -16,6 +16,25 @@ import {
 	onfleetApiRequest,
 } from './GenericFunctions';
 
+const webhookMapping: {[key: string]: number } = {
+	'taskStarted' 								: 0,
+	'taskEta'											: 1,
+	'taskArrival'									: 2,
+	'taskCompleted'								: 3,
+	'taskFailed'									: 4,
+	'workerDuty'									: 5,
+	'taskCreated'									: 6,
+	'taskUpdated'									: 7,
+	'taskDeleted'									: 8,
+	'taskAssigned'								: 9,
+	'taskUnassigned'							: 10,
+	'taskDelayed'									: 12,
+	'taskCloned'									: 13,
+	'smsRecipientResponseMissed' 	: 14,
+	'workerCreated'								: 15,
+	'workerDeleted'								: 16,
+};
+
 export class OnfleetTrigger implements INodeType {
 	description: INodeTypeDescription = {
 		displayName: 'Onfleet Trigger',
@@ -53,8 +72,8 @@ export class OnfleetTrigger implements INodeType {
 		],
 		properties: [
 			{
-				displayName: 'Events',
-				name: 'events',
+				displayName: 'Event',
+				name: 'event',
 				type: 'options',
 				options: [
 					{
@@ -113,6 +132,14 @@ export class OnfleetTrigger implements INodeType {
 						name: 'Sms Recipient Response Missed',
 						value: 'smsRecipientResponseMissed',
 					},
+					{
+						name: 'Worker Created',
+						value: 'workerCreated',
+					},
+					{
+						name: 'Worker Deleted',
+						value: 'workerDeleted',
+					},
 				],
 				required: true,
 				default: [],
@@ -164,20 +191,14 @@ export class OnfleetTrigger implements INodeType {
 					throw new NodeOperationError(this.getNode(), 'The Webhook can not work on "localhost". Please, either setup n8n on a custom domain or start with "--tunnel"!');
 				}
 
-				const events = this.getNodeParameter('events', []);
+				const event = this.getNodeParameter('event', 0) as string;
 
 				const endpoint = `/webhooks`;
 
 				const body = {
-					name: 'web',
-					config: {
-						url: webhookUrl,
-						content_type: 'json',
-						// secret: '...later...',
-						insecure_ssl: '1', // '0' -> not allow inscure ssl | '1' -> allow insercure SSL
-					},
-					events,
-					active: true,
+					name		: '',
+					url			: webhookUrl,
+					trigger	: webhookMapping[event],
 				};
 
 				const webhookData = this.getWorkflowStaticData('node');
@@ -195,7 +216,7 @@ export class OnfleetTrigger implements INodeType {
 						for (const webhook of responseData as IDataObject[]) {
 							if ((webhook!.config! as IDataObject).url! === webhookUrl) {
 								// Webhook got found
-								if (JSON.stringify(webhook.events) === JSON.stringify(events)) {
+								if (JSON.stringify(webhook.events) === JSON.stringify(event)) {
 									// Webhook with same events exists already so no need to
 									// create it again simply save the webhook-id
 									webhookData.webhookId = webhook.id as string;

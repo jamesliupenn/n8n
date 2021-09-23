@@ -166,6 +166,11 @@ export class Onfleet implements INodeType {
 							description: 'Create new Onfleet task',
 						},
 						{
+							name: 'Create Pickup/Dropoff Combo',
+							value: 'createCombo',
+							description: 'Create new Onfleet pickup/dropoff tasks',
+						},
+						{
 							name: 'Delete',
 							value: 'delete',
 							description: 'Delete an Onfleet task',
@@ -343,7 +348,7 @@ export class Onfleet implements INodeType {
 					},
 					description: 'Is this a pickup task?',
 					required: true,
-					default: '',
+					default: false,
 				},
 				{
 					displayName: 'Quantity',
@@ -402,7 +407,7 @@ export class Onfleet implements INodeType {
 				{
 					displayName: 'CompleteAfter',
 					name: 'completeAfter',
-					type: 'number',
+					type: 'dateTime',
 					displayOptions: {
 						show: {
 							resource: [
@@ -413,14 +418,14 @@ export class Onfleet implements INodeType {
 							],
 						},
 					},
-					description: 'Unix timestamp for the earliest time the task should be completed.',
+					description: 'T he earliest time the task should be completed.',
 					required: false,
 					default: null,
 				},
 				{
 					displayName: 'CompleteBefore',
 					name: 'completeBefore',
-					type: 'number',
+					type: 'dateTime',
 					displayOptions: {
 						show: {
 							resource: [
@@ -431,7 +436,7 @@ export class Onfleet implements INodeType {
 							],
 						},
 					},
-					description: 'Unix timestamp for the latest time the task should be completed.',
+					description: 'The latest time the task should be completed.',
 					required: false,
 					default: null,
 				},
@@ -490,6 +495,25 @@ export class Onfleet implements INodeType {
 							default: '',
 						},
 					],
+				},
+				// Task Creation for Pickup/Dropoff Combo
+				{
+					displayName: 'PickupNotes',
+					name: 'pickupNotes',
+					type: 'string',
+					displayOptions: {
+						show: {
+							resource: [
+								'tasks',
+							],
+							operation: [
+								'createCombo',
+							],
+						},
+					},
+					description: 'Pickup task notes',
+					required: false,
+					default: '',
 				},
 				// Task Clone 
 				{
@@ -621,12 +645,21 @@ export class Onfleet implements INodeType {
 
 		// CRUD - Create entity
 		if (operation === 'create') {
+			const cAdate = new Date(this.getNodeParameter('completeAfter', 0) as Date);
+			const cBdate = new Date(this.getNodeParameter('completeBefore', 0) as Date);
 			const body = {
-				pickupTask: this.getNodeParameter('pickupTask', 0) as boolean,
-				quantity  : this.getNodeParameter('quantity', 0) as number,
-				
+				pickupTask		: this.getNodeParameter('pickupTask', 0) as boolean,
+				quantity  		: this.getNodeParameter('quantity', 0) as number,
+				serviceTime		: this.getNodeParameter('serviceTime', 0) as number,
+				notes					: this.getNodeParameter('notes', 0) as string,
+				completeAfter : cAdate.getTime(),
+				completeBefore: cBdate.getTime(),
 			};
-			responseData = await onfleetApiRequest.call(this, 'PUT', encodedApiKey, resource, body);
+			console.log(body);
+			// responseData = await onfleetApiRequest.call(this, 'PUT', encodedApiKey, resource, body);
+		}
+		else if (operation === 'createCombo') {
+
 		}
 		else if (operation === 'clone') {
 			const id = this.getNodeParameter('id', 0) as string;
