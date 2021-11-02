@@ -11,6 +11,7 @@ import {
 	NodeApiError,
 	NodeOperationError,
 } from 'n8n-workflow';
+import { eventDisplay } from './display/trigger/eventDisplay';
 
 import {
 	onfleetApiRequest,
@@ -71,80 +72,7 @@ export class OnfleetTrigger implements INodeType {
 			},
 		],
 		properties: [
-			{
-				displayName: 'Event',
-				name: 'event',
-				type: 'options',
-				options: [
-					{
-						name: 'Task Started',
-						value: 'taskStarted',
-					},
-					{
-						name: 'Task Eta',
-						value: 'taskEta',
-					},
-					{
-						name: 'Task Arrival',
-						value: 'taskArrival',
-					},
-					{
-						name: 'Task Completed',
-						value: 'taskCompleted',
-					},
-					{
-						name: 'Task Failed',
-						value: 'taskFailed',
-					},
-					{
-						name: 'Worker Duty',
-						value: 'workerDuty',
-					},
-					{
-						name: 'Task Created',
-						value: 'taskCreated',
-					},
-					{
-						name: 'Task Updated',
-						value: 'taskUpdated',
-					},
-					{
-						name: 'Task Deleted',
-						value: 'taskDeleted',
-					},
-					{
-						name: 'Task Assigned',
-						value: 'taskAssigned',
-					},
-					{
-						name: 'Task Unassigned',
-						value: 'taskUnassigned',
-					},
-					{
-						name: 'Task Delayed',
-						value: 'taskDelayed',
-					},
-					{
-						name: 'Task Cloned',
-						value: 'taskCloned',
-					},
-					{
-						name: 'Sms Recipient Response Missed',
-						value: 'smsRecipientResponseMissed',
-					},
-					{
-						name: 'Worker Created',
-						value: 'workerCreated',
-					},
-					{
-						name: 'Worker Deleted',
-						value: 'workerDeleted',
-					},
-				],
-				required: true,
-				default: [],
-				description: 'The event to listen to.',
-			},
+			eventDisplay,
 		],
 	};
 
@@ -182,6 +110,20 @@ export class OnfleetTrigger implements INodeType {
 				// If it did not error then the webhook exists
 				return true;
 			},
+			async validate(this: IHookFunctions): Promise<boolean> {
+				const webhookUrl = this.getNodeWebhookUrl('validate') as string;
+				const credentials = this.getCredentials('onfleetApi') as IDataObject;
+				const encodedApiKey = Buffer.from(`${credentials.apiKey}:`).toString('base64');
+				if (webhookUrl.includes('//localhost')) {
+					throw new NodeOperationError(this.getNode(), 'The Webhook can not work on "localhost". Please, either setup n8n on a custom domain or start with "--tunnel"!');
+				}
+
+				const webhookData = this.getWorkflowStaticData('node');
+				console.log(webhookData);
+
+				return true;
+			},
+
 			async create(this: IHookFunctions): Promise<boolean> {
 				const webhookUrl = this.getNodeWebhookUrl('default') as string;
 				const credentials = this.getCredentials('onfleetApi') as IDataObject;
